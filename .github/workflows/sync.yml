@@ -3,8 +3,8 @@ name: Sync to Repo B temp-sync safely
 on:
   push:
     branches:
-      - main       # Only trigger on main branch in Repo A
-  workflow_dispatch: # Enable manual trigger from GitHub UI
+      - main
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -12,43 +12,39 @@ jobs:
 
     steps:
       - name: Checkout Repo A
-        uses: actions/checkout@v5
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '24'  # Updated to latest Node.js version
+          node-version: '24'
 
       - name: Push to temp-sync branch in Repo B
         run: |
-          # Configure Git commit author
-          git config --global user.name "Your Name"
-          git config --global user.email "your-email@example.com"
+          # Configure Git
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
 
-          # Add Repo B as a remote using the secret token
+          # Add Repo B as remote
           git remote add repo-b https://x-access-token:${{ secrets.POWER_SYNC_MAIN }}@github.com/aungkaungmyathtun-kbz/repo-sync-b.git
 
-          # Check if temp-sync exists in Repo B
+          # Check if temp-sync exists
           if git ls-remote --exit-code --heads repo-b temp-sync; then
             git fetch repo-b temp-sync:temp-sync
             git checkout temp-sync
-
-            # Merge changes from main without touching workflow/workfile
             git checkout main -- .
             git rm -r --cached .github/workflows
             git rm --cached workfile || echo "workfile not found"
-
             git commit -m "Update temp-sync with changes from main" || echo "No changes to commit"
           else
-            # Create temp-sync if it doesn't exist
             git checkout -b temp-sync
             git rm -r --cached .github/workflows
             git rm --cached workfile || echo "workfile not found"
             git commit -m "Create temp-sync from main" || echo "Nothing to commit"
           fi
 
-          # Push temp-sync safely
+          # Push to Repo B
           git push repo-b temp-sync
-          
+
           # Return to main
           git checkout main
