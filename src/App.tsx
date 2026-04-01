@@ -9,7 +9,7 @@ function App() {
 
   return (
     <>
-        <h3>This is repo Sync</h3>
+        <h3>This is repo Sync to repo b</h3>
     </>
   )
 }
